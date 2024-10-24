@@ -1,25 +1,21 @@
-use num_traits::Num;
 use std::ops::{Add, Mul, Neg, Sub};
 
-struct Vec2<T>
-where
-    T: Num + Into<f64> + Copy,
-{
-    x: T,
-    y: T,
+struct Vec2 {
+    x: f64,
+    y: f64,
 }
 
-impl<T: Num + Into<f64> + Copy> Vec2<T> {
-    pub fn init(x: T, y: T) -> Self {
+impl Vec2 {
+    pub fn init(x: f64, y: f64) -> Self {
         Self { x, y }
     }
 
     pub fn len(self) -> f64 {
-        return f64::hypot(self.x.into(), self.y.into());
+        return f64::hypot(self.x, self.y);
     }
 }
 
-impl<T: Neg<Output = T> + Num + Into<f64> + Copy> Neg for Vec2<T> {
+impl Neg for Vec2 {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -30,7 +26,7 @@ impl<T: Neg<Output = T> + Num + Into<f64> + Copy> Neg for Vec2<T> {
     }
 }
 
-impl<T: Add<Output = T> + Num + Into<f64> + Copy> Add<Vec2<T>> for Vec2<T> {
+impl Add<Vec2> for Vec2 {
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
@@ -41,7 +37,7 @@ impl<T: Add<Output = T> + Num + Into<f64> + Copy> Add<Vec2<T>> for Vec2<T> {
     }
 }
 
-impl<T: Sub<Output = T> + Num + Into<f64> + Copy> Sub<Vec2<T>> for Vec2<T> {
+impl Sub for Vec2 {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
@@ -52,10 +48,10 @@ impl<T: Sub<Output = T> + Num + Into<f64> + Copy> Sub<Vec2<T>> for Vec2<T> {
     }
 }
 
-impl<T: Mul<Output = T> + Num + Into<f64> + Copy> Mul<T> for Vec2<T> {
+impl Mul<f64> for Vec2 {
     type Output = Self;
 
-    fn mul(self, other: T) -> Self::Output {
+    fn mul(self, other: f64) -> Self::Output {
         Self {
             x: other * self.x,
             y: other * self.y,
@@ -63,10 +59,10 @@ impl<T: Mul<Output = T> + Num + Into<f64> + Copy> Mul<T> for Vec2<T> {
     }
 }
 
-impl<T: Mul<Output = T> + Num + Into<f64> + Copy> Mul<Vec2<T>> for Vec2<T> {
+impl Mul<Vec2> for Vec2 {
     type Output = Self;
 
-    fn mul(self, other: Vec2<T>) -> Self::Output {
+    fn mul(self, other: Vec2) -> Self::Output {
         Self {
             x: other.x * self.x,
             y: other.y * self.y,
@@ -74,15 +70,12 @@ impl<T: Mul<Output = T> + Num + Into<f64> + Copy> Mul<Vec2<T>> for Vec2<T> {
     }
 }
 
-pub struct Turtle<T>
-where
-    T: Num + Into<f64> + Copy,
-{
-    position: Vec2<T>,
+pub struct Turtle {
+    position: Vec2,
 }
 
-impl<T: Num + Into<f64> + Copy> Turtle<T> {
-    pub fn init(x: T, y: T) -> Self {
+impl Turtle {
+    pub fn init(x: f64, y: f64) -> Self {
         return Self {
             position: Vec2::init(x, y),
         };
