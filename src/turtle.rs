@@ -8,6 +8,7 @@ struct Vec2 {
     pub y: f32,
 }
 
+#[allow(dead_code)]
 impl Vec2 {
     pub fn init(x: f32, y: f32) -> Self {
         Self { x, y }
@@ -104,26 +105,6 @@ impl Turtle {
         };
     }
 
-    pub fn set_x(&mut self, x: f32) {
-        self.position.x = x;
-    }
-
-    pub fn set_y(&mut self, y: f32) {
-        self.position.y = y;
-    }
-
-    pub fn set_position(&mut self, destination: Vec2) {
-        draw_line(
-            self.position.x,
-            self.position.y,
-            destination.x,
-            destination.y,
-            self.line_thickness,
-            self.line_color,
-        );
-        self.position = destination;
-    }
-
     pub fn heading(&self) -> f32 {
         let result = f32::to_degrees(f32::atan2(self.orientation.y, self.orientation.x)) % 360.0;
         (self.angle_offset + self.angle_orientation * result) % 360.0
@@ -158,5 +139,17 @@ impl Turtle {
 
     fn rotate(&mut self, angle: f32) {
         self.orientation = self.orientation.rotate(angle);
+    }
+
+    fn set_position(&mut self, destination: Vec2) {
+        draw_line(
+            self.position.x,
+            self.position.y,
+            destination.x,
+            destination.y,
+            self.line_thickness,
+            self.line_color,
+        );
+        self.position = destination;
     }
 }
