@@ -1,9 +1,10 @@
 use std::ops::{Add, Mul, Neg, Sub};
+use std::sync::{Arc, RwLock};
 
 use macroquad::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
-struct Vec2 {
+pub struct Vec2 {
     pub x: f32,
     pub y: f32,
 }
@@ -83,6 +84,78 @@ impl Mul<Vec2> for Vec2 {
     }
 }
 
+enum Shape {
+    Line {
+        a: Vec2,
+        b: Vec2,
+        thickness: f32,
+        color: Color,
+    },
+}
+
+pub struct TurtleScreen {
+    shapes: Arc<RwLock<Vec<Shape>>>,
+}
+
+#[allow(dead_code)]
+impl TurtleScreen {
+    pub fn init() -> Self {
+        Self {
+            shapes: Arc::new(RwLock::new(vec![])),
+        }
+    }
+
+    pub fn present(&self) {
+        if let Ok(shapes) = self.shapes.read() {
+            shapes.iter().for_each(|shape| match shape {
+                Shape::Line {
+                    a,
+                    b,
+                    thickness,
+                    color,
+                } => draw_line(a.x, a.y, b.x, b.y, *thickness, *color),
+            });
+        }
+    }
+
+    pub fn draw_line(&self, a: Vec2, b: Vec2, thickness: f32, color: Color) {
+        if let Ok(mut shapes) = self.shapes.write() {
+            shapes.push(Shape::Line {
+                a,
+                b,
+                thickness,
+                color,
+            });
+        }
+    }
+
+    pub fn clear(&self) {
+        if let Ok(mut shapes) = self.shapes.write() {
+            shapes.clear();
+        }
+    }
+}
+
+pub struct TurtleConfig {
+    pub start_orientation: Vec2,
+    pub line_thickness: f32,
+    pub line_color: Color,
+    pub angle_offset: f32,
+    pub angle_orientation: f32,
+}
+
+impl Default for TurtleConfig {
+    fn default() -> Self {
+        Self {
+            start_orientation: Vec2::init(0.0, 1.0),
+            line_thickness: 1.0,
+            line_color: BLACK,
+            angle_offset: 360.0 / 4.0,
+            angle_orientation: -1.0,
+        }
+    }
+}
+
 pub struct Turtle {
     position: Vec2,
     orientation: Vec2,
@@ -90,28 +163,44 @@ pub struct Turtle {
     line_color: Color,
     angle_offset: f32,
     angle_orientation: f32,
+    screen: Arc<TurtleScreen>,
 }
 
 #[allow(dead_code)]
 impl Turtle {
-    pub fn init(x: f32, y: f32) -> Self {
+    pub fn init(x: f32, y: f32, screen: Arc<TurtleScreen>, config: &TurtleConfig) -> Self {
         return Self {
             position: Vec2::init(x, y),
-            orientation: Vec2::init(0.0, 1.0),
-            line_thickness: 1.0,
-            line_color: BLACK,
-            angle_offset: 360.0 / 4.0,
-            angle_orientation: -1.0,
+            orientation: config.start_orientation,
+            line_thickness: config.line_thickness,
+            line_color: config.line_color,
+            angle_offset: config.angle_offset,
+            angle_orientation: config.angle_orientation,
+            screen,
         };
     }
 
-    pub fn heading(&self) -> f32 {
+    pub fn get_position(&self) -> Vec2 {
+        self.position
+    }
+
+    pub fn set_position(&mut self, destination: Vec2) {
+        self.screen.draw_line(
+            self.position,
+            destination,
+            self.line_thickness,
+            self.line_color,
+        );
+        self.position = destination;
+    }
+
+    pub fn get_angle(&self) -> f32 {
         let result = f32::to_degrees(f32::atan2(self.orientation.y, self.orientation.x)) % 360.0;
         (self.angle_offset + self.angle_orientation * result) % 360.0
     }
 
-    pub fn set_heading(&mut self, to_angle: f32) {
-        let mut angle: f32 = (to_angle - self.heading()) * self.angle_orientation;
+    pub fn set_angle(&mut self, to_angle: f32) {
+        let mut angle: f32 = (to_angle - self.get_angle()) * self.angle_orientation;
         angle = (angle + 360.0 / 2.0) % 360.0 - 360.0 / 2.0;
         self.rotate(angle)
     }
@@ -139,17 +228,5 @@ impl Turtle {
 
     fn rotate(&mut self, angle: f32) {
         self.orientation = self.orientation.rotate(angle);
-    }
-
-    fn set_position(&mut self, destination: Vec2) {
-        draw_line(
-            self.position.x,
-            self.position.y,
-            destination.x,
-            destination.y,
-            self.line_thickness,
-            self.line_color,
-        );
-        self.position = destination;
     }
 }

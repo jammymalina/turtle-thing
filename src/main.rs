@@ -1,12 +1,17 @@
 use macroquad::prelude::*;
-use turtle::Turtle;
+use std::sync::Arc;
+use turtle::{Turtle, TurtleConfig, TurtleScreen};
 
 mod turtle;
 
-fn draw(turtle: &mut Turtle) {
-    for _ in 0..3 {
-        turtle.forward(100.0);
-        turtle.left(90.0);
+fn update(turtle: &mut Turtle, dt: f32) {
+    // let rotation_speed = 60_f32;
+
+    // turtle.left(rotation_speed * dt);
+    let n = 5;
+    for _ in 0..n {
+        turtle.forward(200.0);
+        turtle.left(360.0 / n as f32);
     }
 }
 
@@ -16,12 +21,26 @@ async fn main() {
     let screen_height = 720.0_f32;
     request_new_screen_size(screen_width, screen_height);
 
-    let mut turtle = turtle::Turtle::init(screen_width / 2.0, screen_height / 2.0);
+    let screen = Arc::new(TurtleScreen::init());
+
+    let turtle_config = TurtleConfig {
+        ..Default::default()
+    };
+    let mut turtle = turtle::Turtle::init(
+        screen_width / 2.0,
+        screen_height / 2.0,
+        screen.clone(),
+        &turtle_config,
+    );
+
     loop {
+        screen.clear();
         clear_background(WHITE);
 
-        draw(&mut turtle);
+        let dt = get_frame_time();
+        update(&mut turtle, dt);
 
+        screen.present();
         next_frame().await
     }
 }
