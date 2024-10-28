@@ -5,13 +5,20 @@ use turtle::{Turtle, TurtleConfig, TurtleScreen};
 mod turtle;
 
 fn update(turtle: &mut Turtle, dt: f32) {
+    turtle.clear();
+
     // let rotation_speed = 60_f32;
 
     // turtle.left(rotation_speed * dt);
-    let n = 5;
+    let n = 1;
     for _ in 0..n {
         turtle.forward(200.0);
-        turtle.left(360.0 / n as f32);
+        turtle.left(90.0);
+        turtle.forward(200.0);
+        turtle.left(90.0);
+        turtle.forward(200.0);
+
+        turtle.to_origin();
     }
 }
 
@@ -27,18 +34,16 @@ async fn main() {
         ..Default::default()
     };
     let mut turtle = turtle::Turtle::init(
-        screen_width / 2.0,
-        screen_height / 2.0,
+        Vec2::new(screen_width / 2.0, screen_height / 2.0),
         screen.clone(),
         &turtle_config,
     );
 
+    update(&mut turtle, 0.0);
     loop {
-        screen.clear();
         clear_background(WHITE);
 
         let dt = get_frame_time();
-        update(&mut turtle, dt);
 
         screen.present();
         next_frame().await
