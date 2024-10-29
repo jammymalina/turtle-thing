@@ -2,6 +2,43 @@ use std::sync::{Arc, RwLock};
 
 use macroquad::prelude::*;
 
+pub struct CoordinateTransform {
+    screen_width: f32,
+    screen_height: f32,
+    scale: f32,
+}
+
+#[allow(dead_code)]
+impl CoordinateTransform {
+    pub fn new(screen_width: f32, screen_height: f32, scale: f32) -> Self {
+        Self {
+            screen_width,
+            screen_height,
+            scale,
+        }
+    }
+
+    /// Convert a single point from centered to screen coordinates
+    pub fn to_screen(&self, p: Vec2) -> Vec2 {
+        let screen_x = (p.x * self.scale) + (self.screen_width / 2.0);
+        let screen_y = (-p.y * self.scale) + (self.screen_height / 2.0);
+        Vec2::new(screen_x, screen_y)
+    }
+
+    /// Convert a single point from screen to centered coordinates
+    pub fn to_centered(&self, p: Vec2) -> Vec2 {
+        let x = (p.x - (self.screen_width / 2.0)) / self.scale;
+        let y = -(p.y - (self.screen_height / 2.0)) / self.scale;
+        Vec2::new(x, y)
+    }
+
+    /// Update screen dimensions (useful for window resize)
+    pub fn update_screen_size(&mut self, width: f32, height: f32) {
+        self.screen_width = width;
+        self.screen_height = height;
+    }
+}
+
 enum Shape {
     Line {
         a: Vec2,
@@ -17,13 +54,13 @@ pub struct TurtleScreen {
 
 #[allow(dead_code)]
 impl TurtleScreen {
-    pub fn init() -> Self {
+    pub fn new() -> Self {
         Self {
             shapes: Arc::new(RwLock::new(vec![])),
         }
     }
 
-    pub fn present(&self) {
+    pub fn present(&self, coordinate_transform: &CoordinateTransform) {
         if let Ok(shapes) = self.shapes.read() {
             shapes.iter().for_each(|shape| match shape {
                 Shape::Line {
@@ -31,7 +68,13 @@ impl TurtleScreen {
                     b,
                     thickness,
                     color,
-                } => draw_line(a.x, a.y, b.x, b.y, *thickness, *color),
+                } => {
+                    let screen_a = coordinate_transform.to_screen(*a);
+                    let screen_b = coordinate_transform.to_screen(*b);
+                    draw_line(
+                        screen_a.x, screen_a.y, screen_b.x, screen_b.y, *thickness, *color,
+                    );
+                }
             });
         }
     }
@@ -66,7 +109,7 @@ pub struct TurtleConfig {
 impl Default for TurtleConfig {
     fn default() -> Self {
         Self {
-            start_rotation: Vec2::new(0.0, -1.0),
+            start_rotation: Vec2::new(0.0, 1.0),
             line_thickness: 1.0,
             line_color: BLACK,
             angle_offset: 360.0 / 4.0,
@@ -89,7 +132,7 @@ pub struct Turtle {
 
 #[allow(dead_code)]
 impl Turtle {
-    pub fn init(origin: Vec2, screen: Arc<TurtleScreen>, config: &TurtleConfig) -> Self {
+    pub fn new(origin: Vec2, screen: Arc<TurtleScreen>, config: &TurtleConfig) -> Self {
         return Self {
             position: origin,
             origin,
@@ -130,13 +173,13 @@ impl Turtle {
     }
 
     pub fn get_angle(&self) -> f32 {
-        let result = f32::to_degrees(f32::atan2(self.rotation.y, self.rotation.x)) % 360.0;
-        (self.angle_offset + self.angle_rotation * result) % 360.0
+        let result = f32::to_degrees(self.rotation.to_angle()).rem_euclid(360.0);
+        (self.angle_offset + self.angle_rotation * result).rem_euclid(360.0)
     }
 
     pub fn set_angle(&mut self, to_angle: f32) {
         let mut angle: f32 = (to_angle - self.get_angle()) * self.angle_rotation;
-        angle = (angle + 360.0 / 2.0) % 360.0 - 360.0 / 2.0;
+        angle = (angle + 360.0 / 2.0).rem_euclid(360.0) - 360.0 / 2.0;
         self.rotate(angle)
     }
 

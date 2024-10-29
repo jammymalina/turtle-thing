@@ -1,43 +1,31 @@
 use macroquad::prelude::*;
 use std::sync::Arc;
-use turtle::{Turtle, TurtleConfig, TurtleScreen};
+use turtle::{CoordinateTransform, Turtle, TurtleConfig, TurtleScreen};
 
 mod turtle;
 
 fn update(turtle: &mut Turtle, dt: f32) {
     turtle.clear();
 
-    // let rotation_speed = 60_f32;
-
-    // turtle.left(rotation_speed * dt);
-    let n = 1;
-    for _ in 0..n {
-        turtle.forward(200.0);
-        turtle.left(90.0);
-        turtle.forward(200.0);
-        turtle.left(90.0);
-        turtle.forward(200.0);
-
+    for _ in 0..3 {
+        turtle.forward(100.0);
+        turtle.left(30.0);
         turtle.to_origin();
     }
 }
 
 #[macroquad::main("turtle")]
 async fn main() {
-    let screen_width = 1280.0_f32;
-    let screen_height = 720.0_f32;
-    request_new_screen_size(screen_width, screen_height);
+    request_new_screen_size(1280.0, 720.0);
 
-    let screen = Arc::new(TurtleScreen::init());
+    let mut transform = CoordinateTransform::new(screen_width(), screen_height(), 1.0);
+
+    let screen = Arc::new(TurtleScreen::new());
 
     let turtle_config = TurtleConfig {
         ..Default::default()
     };
-    let mut turtle = turtle::Turtle::init(
-        Vec2::new(screen_width / 2.0, screen_height / 2.0),
-        screen.clone(),
-        &turtle_config,
-    );
+    let mut turtle = Turtle::new(Vec2::new(0.0, 0.0), screen.clone(), &turtle_config);
 
     update(&mut turtle, 0.0);
     loop {
@@ -45,7 +33,13 @@ async fn main() {
 
         let dt = get_frame_time();
 
-        screen.present();
+        screen.present(&transform);
+
+        transform.update_screen_size(screen_width(), screen_height());
+        if is_quit_requested() {
+            break;
+        }
+
         next_frame().await
     }
 }
