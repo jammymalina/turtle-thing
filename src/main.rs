@@ -60,7 +60,6 @@ impl TurtleBehaviour for Spiral {
             return;
         }
 
-
         self.turtle.forward(count as f32 / 100.0);
         self.turtle.right(2.0);
     }
@@ -89,7 +88,7 @@ async fn main() {
 
     let spiral = Spiral::new(
         Turtle::new(Vec2::new(0.0, 0.0), screen.clone(), &turtle_config),
-        50,
+        5,
     );
 
     let mut turtle_behaviours: Vec<Box<dyn TurtleBehaviour>> = vec![Box::new(spiral)];
