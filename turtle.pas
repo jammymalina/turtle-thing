@@ -1,5 +1,5 @@
 unit RobotUnit;
-// verzia 221012
+
 {$mode objfpc}{$H+}
 
 interface
