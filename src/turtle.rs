@@ -100,8 +100,8 @@ impl TurtleScreen {
 #[derive(Clone)]
 pub struct TurtleConfig {
     pub start_rotation: Vec2,
-    pub line_thickness: f32,
-    pub line_color: Color,
+    pub pen_width: f32,
+    pub pen_color: Color,
     pub angle_offset: f32,
     pub angle_rotation: f32,
 }
@@ -110,8 +110,8 @@ impl Default for TurtleConfig {
     fn default() -> Self {
         Self {
             start_rotation: Vec2::new(0.0, 1.0),
-            line_thickness: 1.0,
-            line_color: BLACK,
+            pen_width: 1.0,
+            pen_color: BLACK,
             angle_offset: 360.0 / 4.0,
             angle_rotation: -1.0,
         }
@@ -119,11 +119,12 @@ impl Default for TurtleConfig {
 }
 
 pub struct Turtle {
+    pub pen_width: f32,
+    pub pen_color: Color,
+
     position: Vec2,
     origin: Vec2,
     rotation: Vec2,
-    line_thickness: f32,
-    line_color: Color,
     angle_offset: f32,
     angle_rotation: f32,
     original_config: TurtleConfig,
@@ -137,8 +138,8 @@ impl Turtle {
             position: origin,
             origin,
             rotation: config.start_rotation.normalize(),
-            line_thickness: config.line_thickness,
-            line_color: config.line_color,
+            pen_width: config.pen_width,
+            pen_color: config.pen_color,
             angle_offset: config.angle_offset,
             angle_rotation: config.angle_rotation,
             original_config: config.clone(),
@@ -151,12 +152,8 @@ impl Turtle {
     }
 
     pub fn set_position(&mut self, destination: Vec2) {
-        self.screen.draw_line(
-            self.position,
-            destination,
-            self.line_thickness,
-            self.line_color,
-        );
+        self.screen
+            .draw_line(self.position, destination, self.pen_width, self.pen_color);
         self.position = destination;
     }
 
