@@ -296,7 +296,7 @@ begin
         Inc(I);
       if I = N then
       begin
-        ShowMessage('vadnÃ¡ aplikÃ¡cia - Robot nenaÅ¡iel formulÃ¡r');
+        ShowMessage('Invalid application, form cannot be found');
         Halt;
       end;
       Form := TForm(Application.Components[I]);
@@ -307,7 +307,7 @@ begin
       Inc(I);
     if I >= N then
     begin
-      ShowMessage('vadnÃ¡ aplikÃ¡cia - Robot nenaÅ¡iel grafickÃº plochu');
+      ShowMessage('Invalid application, canvas cannot be found');
       Halt;
     end;
     Image := TImage(Form.Controls[I]);
