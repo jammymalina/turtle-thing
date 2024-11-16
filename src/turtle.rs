@@ -102,6 +102,7 @@ pub struct TurtleConfig {
     pub start_rotation: Vec2,
     pub pen_width: f32,
     pub pen_color: Color,
+    pub pen_down: bool,
     pub angle_offset: f32,
     pub angle_rotation: f32,
 }
@@ -112,6 +113,7 @@ impl Default for TurtleConfig {
             start_rotation: Vec2::new(0.0, 1.0),
             pen_width: 1.0,
             pen_color: BLACK,
+            pen_down: true,
             angle_offset: 360.0 / 4.0,
             angle_rotation: -1.0,
         }
@@ -121,6 +123,7 @@ impl Default for TurtleConfig {
 pub struct Turtle {
     pub pen_width: f32,
     pub pen_color: Color,
+    pub pen_down: bool,
 
     position: Vec2,
     origin: Vec2,
@@ -140,6 +143,7 @@ impl Turtle {
             rotation: config.start_rotation.normalize(),
             pen_width: config.pen_width,
             pen_color: config.pen_color,
+            pen_down: config.pen_down,
             angle_offset: config.angle_offset,
             angle_rotation: config.angle_rotation,
             original_config: config.clone(),
@@ -152,8 +156,10 @@ impl Turtle {
     }
 
     pub fn set_position(&mut self, destination: Vec2) {
-        self.screen
-            .draw_line(self.position, destination, self.pen_width, self.pen_color);
+        if self.pen_down {
+            self.screen
+                .draw_line(self.position, destination, self.pen_width, self.pen_color);
+        }
         self.position = destination;
     }
 
@@ -199,6 +205,16 @@ impl Turtle {
 
     pub fn right(&mut self, angle: f32) {
         self.rotate(-angle);
+    }
+
+    pub fn towards(&mut self, position: Vec2) {
+        let delta = position - self.position;
+        let to_angle = delta.y.atan2(delta.x).to_degrees().rem_euclid(360.0);
+        self.set_angle(self.angle_offset + self.angle_rotation * to_angle);
+    }
+
+    pub fn distance(&self, position: Vec2) -> f32 {
+        self.position.distance(position)
     }
 
     pub fn clear(&self) {
