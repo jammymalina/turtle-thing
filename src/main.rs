@@ -287,7 +287,7 @@ async fn main() {
     let _spiral_motion_1 = SpiralMotion1::new(screen.clone(), 1);
     let _spiral_motion_2 = SpiralMotion2::new(screen.clone(), 1);
     let _expanding_circle_motion = ExpandingCircleMotion::new(screen.clone(), 1, 1.0);
-    let expanding_spiral = ExpandingSpiral::new(screen.clone(), 3, 2.0);
+    let expanding_spiral = ExpandingSpiral::new(screen.clone(), 3, 50.0);
 
     let mut turtle_behaviours: Vec<Box<dyn TurtleBehaviour>> = vec![Box::new(expanding_spiral)];
 
