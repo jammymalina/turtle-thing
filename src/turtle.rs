@@ -49,18 +49,27 @@ enum Shape {
 }
 
 pub struct TurtleScreen {
+    background_color: Color,
     shapes: Arc<RwLock<Vec<Shape>>>,
 }
 
 #[allow(dead_code)]
 impl TurtleScreen {
-    pub fn new() -> Self {
+    pub fn new(background_color: Color) -> Self {
         Self {
+            background_color,
             shapes: Arc::new(RwLock::new(vec![])),
         }
     }
 
     pub fn present(&self, coordinate_transform: &CoordinateTransform) {
+        draw_rectangle(
+            0.0,
+            0.0,
+            coordinate_transform.screen_width,
+            coordinate_transform.screen_height,
+            self.background_color,
+        );
         if let Ok(shapes) = self.shapes.read() {
             shapes.iter().for_each(|shape| match shape {
                 Shape::Line {
