@@ -106,6 +106,14 @@ impl TurtleScreen {
     }
 }
 
+#[allow(dead_code)]
+pub enum TurtleCommand {
+    FORWARD { distance: f32 },
+    BACKWARD { distance: f32 },
+    LEFT { angle: f32 },
+    RIGHT { angle: f32 },
+}
+
 #[derive(Clone)]
 pub struct TurtleConfig {
     pub start_rotation: Vec2,
@@ -224,6 +232,15 @@ impl Turtle {
 
     pub fn distance(&self, position: Vec2) -> f32 {
         self.position.distance(position)
+    }
+
+    pub fn exec_command(&mut self, command: TurtleCommand) {
+        match command {
+            TurtleCommand::FORWARD { distance } => self.forward(distance),
+            TurtleCommand::BACKWARD { distance } => self.backward(distance),
+            TurtleCommand::LEFT { angle } => self.left(angle),
+            TurtleCommand::RIGHT { angle } => self.right(angle),
+        }
     }
 
     pub fn clear(&self) {
