@@ -109,10 +109,10 @@ impl TurtleScreen {
 #[allow(dead_code)]
 #[derive(Copy, Clone)]
 pub enum TurtleCommand {
-    FORWARD { distance: f32 },
-    BACKWARD { distance: f32 },
-    LEFT { angle: f32 },
-    RIGHT { angle: f32 },
+    Forward { distance: f32 },
+    Backward { distance: f32 },
+    Left { angle: f32 },
+    Right { angle: f32 },
 }
 
 #[derive(Clone)]
@@ -237,10 +237,10 @@ impl Turtle {
 
     pub fn exec_command(&mut self, command: TurtleCommand) {
         match command {
-            TurtleCommand::FORWARD { distance } => self.forward(distance),
-            TurtleCommand::BACKWARD { distance } => self.backward(distance),
-            TurtleCommand::LEFT { angle } => self.left(angle),
-            TurtleCommand::RIGHT { angle } => self.right(angle),
+            TurtleCommand::Forward { distance } => self.forward(distance),
+            TurtleCommand::Backward { distance } => self.backward(distance),
+            TurtleCommand::Left { angle } => self.left(angle),
+            TurtleCommand::Right { angle } => self.right(angle),
         }
     }
 

@@ -94,7 +94,7 @@ impl TurtleBehaviour for TurtleCommandsAnimator {
             let command = self.commands[self.current_command_index];
             self.turtle.exec_command(command);
             self.current_command_index += 1;
-            if matches!(command, TurtleCommand::FORWARD { .. }) {
+            if matches!(command, TurtleCommand::Forward { .. }) {
                 break;
             }
         }
@@ -372,8 +372,8 @@ impl SierpinskiTriangle {
         }
 
         for _ in 0..3 {
-            result.push(TurtleCommand::FORWARD { distance: a });
-            result.push(TurtleCommand::LEFT { angle: 120.0 });
+            result.push(TurtleCommand::Forward { distance: a });
+            result.push(TurtleCommand::Left { angle: 120.0 });
             Self::triangle_recursive(n - 1, a / 2.0, result);
         }
     }
