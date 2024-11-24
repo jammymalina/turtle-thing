@@ -107,6 +107,7 @@ impl TurtleScreen {
 }
 
 #[allow(dead_code)]
+#[derive(Copy, Clone)]
 pub enum TurtleCommand {
     FORWARD { distance: f32 },
     BACKWARD { distance: f32 },

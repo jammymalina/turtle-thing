@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
-use turtle::{CoordinateTransform, Turtle, TurtleConfig, TurtleScreen};
+use turtle::{CoordinateTransform, Turtle, TurtleCommand, TurtleConfig, TurtleScreen};
 
 mod turtle;
 
@@ -31,6 +31,49 @@ impl IntervalChecker {
 
 trait TurtleBehaviour {
     fn update(&mut self, dt: f32, time_passed_ms: u64);
+}
+
+struct TurtleCommandsAnimator {
+    turtle: Turtle,
+    interval_checker: IntervalChecker,
+    commands: Vec<TurtleCommand>,
+    current_command_index: usize,
+}
+
+impl TurtleCommandsAnimator {
+    fn new(turtle: Turtle, commands: &[TurtleCommand], interval_ms: u64) -> Self {
+        Self {
+            turtle,
+            interval_checker: IntervalChecker::new(interval_ms),
+            commands: commands.to_vec(),
+            current_command_index: 0,
+        }
+    }
+
+    fn reset(&mut self) {
+        self.current_command_index = 0;
+    }
+}
+
+impl TurtleBehaviour for TurtleCommandsAnimator {
+    fn update(&mut self, _dt: f32, time_passed_ms: u64) {
+        if self.current_command_index >= self.commands.len() {
+            return;
+        }
+
+        if !self.interval_checker.should_run(time_passed_ms) {
+            return;
+        }
+
+        while self.current_command_index < self.commands.len() {
+            let command = self.commands[self.current_command_index];
+            self.turtle.exec_command(command);
+            self.current_command_index += 1;
+            if matches!(command, TurtleCommand::FORWARD { .. }) {
+                break;
+            }
+        }
+    }
 }
 
 struct Spiral {
@@ -266,6 +309,50 @@ impl TurtleBehaviour for ExpandingSpiral {
     }
 }
 
+struct SierpinskiTriangle {
+    animator: TurtleCommandsAnimator,
+}
+
+impl SierpinskiTriangle {
+    fn new(screen: Arc<TurtleScreen>, n: u32, a: f32, interval_ms: u64) -> Self {
+        let turtle_config = TurtleConfig {
+            pen_width: 1.0,
+            ..Default::default()
+        };
+        let turtle = Turtle::new(Vec2::new(0.0, 0.0), screen.clone(), &turtle_config);
+        let triangle_commands = Self::triangle(n, a);
+
+        Self {
+            animator: TurtleCommandsAnimator::new(turtle, &triangle_commands, interval_ms),
+        }
+    }
+
+    fn triangle(n: u32, a: f32) -> Vec<TurtleCommand> {
+        let mut result = vec![];
+        Self::triangle_recursive(n, a, &mut result);
+
+        result
+    }
+
+    fn triangle_recursive(n: u32, a: f32, result: &mut Vec<TurtleCommand>) {
+        if n == 0 {
+            return;
+        }
+
+        for _ in 0..3 {
+            result.push(TurtleCommand::FORWARD { distance: a });
+            result.push(TurtleCommand::LEFT { angle: 120.0 });
+            Self::triangle_recursive(n - 1, a / 2.0, result);
+        }
+    }
+}
+
+impl TurtleBehaviour for SierpinskiTriangle {
+    fn update(&mut self, dt: f32, time_passed_ms: u64) {
+        self.animator.update(dt, time_passed_ms);
+    }
+}
+
 fn update(dt: f32, turtle_behaviours: &mut [Box<dyn TurtleBehaviour>]) {
     static TIME_MS: AtomicU64 = AtomicU64::new(0);
 
@@ -287,9 +374,10 @@ async fn main() {
     let _spiral_motion_1 = SpiralMotion1::new(screen.clone(), 1);
     let _spiral_motion_2 = SpiralMotion2::new(screen.clone(), 1);
     let _expanding_circle_motion = ExpandingCircleMotion::new(screen.clone(), 1, 1.0);
-    let expanding_spiral = ExpandingSpiral::new(screen.clone(), 3, 50.0);
+    let _expanding_spiral = ExpandingSpiral::new(screen.clone(), 3, 50.0);
+    let sierpinski_triangle = SierpinskiTriangle::new(screen.clone(), 5, 300.0, 100);
 
-    let mut turtle_behaviours: Vec<Box<dyn TurtleBehaviour>> = vec![Box::new(expanding_spiral)];
+    let mut turtle_behaviours: Vec<Box<dyn TurtleBehaviour>> = vec![Box::new(sierpinski_triangle)];
 
     loop {
         clear_background(WHITE);
