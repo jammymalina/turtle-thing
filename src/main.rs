@@ -76,10 +76,9 @@ impl TurtleBehaviour for TurtleCommandsAnimator {
         if self.current_command_index >= self.commands.len() {
             if let TurtleCommandsAnimationAutoReset::Enabled { reset_timeout_ms } = self.auto_reset
             {
-                self.start_reset_timestamp.get_or_insert(Instant::now());
-                let start_timestamp = self.start_reset_timestamp.unwrap();
+                let start_timestamp = self.start_reset_timestamp.get_or_insert(Instant::now());
                 let now = Instant::now();
-                if now.duration_since(start_timestamp) >= Duration::from_millis(reset_timeout_ms) {
+                if now.duration_since(*start_timestamp) >= Duration::from_millis(reset_timeout_ms) {
                     self.start_reset_timestamp = None;
                     self.reset();
                 }
