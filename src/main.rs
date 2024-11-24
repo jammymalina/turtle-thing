@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 use turtle::{CoordinateTransform, Turtle, TurtleCommand, TurtleConfig, TurtleScreen};
 
 mod turtle;
@@ -33,18 +34,32 @@ trait TurtleBehaviour {
     fn update(&mut self, dt: f32, time_passed_ms: u64);
 }
 
+enum TurtleCommandsAnimationAutoReset {
+    Disabled,
+    Enabled { reset_timeout_ms: u64 },
+}
+
 struct TurtleCommandsAnimator {
     turtle: Turtle,
     interval_checker: IntervalChecker,
+    auto_reset: TurtleCommandsAnimationAutoReset,
+    start_reset_timestamp: Option<Instant>,
     commands: Vec<TurtleCommand>,
     current_command_index: usize,
 }
 
 impl TurtleCommandsAnimator {
-    fn new(turtle: Turtle, commands: &[TurtleCommand], interval_ms: u64) -> Self {
+    fn new(
+        turtle: Turtle,
+        commands: &[TurtleCommand],
+        interval_ms: u64,
+        auto_reset: TurtleCommandsAnimationAutoReset,
+    ) -> Self {
         Self {
             turtle,
             interval_checker: IntervalChecker::new(interval_ms),
+            auto_reset,
+            start_reset_timestamp: None,
             commands: commands.to_vec(),
             current_command_index: 0,
         }
@@ -52,12 +67,23 @@ impl TurtleCommandsAnimator {
 
     fn reset(&mut self) {
         self.current_command_index = 0;
+        self.turtle.clear();
     }
 }
 
 impl TurtleBehaviour for TurtleCommandsAnimator {
     fn update(&mut self, _dt: f32, time_passed_ms: u64) {
         if self.current_command_index >= self.commands.len() {
+            if let TurtleCommandsAnimationAutoReset::Enabled { reset_timeout_ms } = self.auto_reset
+            {
+                self.start_reset_timestamp.get_or_insert(Instant::now());
+                let start_timestamp = self.start_reset_timestamp.unwrap();
+                let now = Instant::now();
+                if now.duration_since(start_timestamp) >= Duration::from_millis(reset_timeout_ms) {
+                    self.start_reset_timestamp = None;
+                    self.reset();
+                }
+            }
             return;
         }
 
@@ -323,7 +349,14 @@ impl SierpinskiTriangle {
         let triangle_commands = Self::triangle(n, a);
 
         Self {
-            animator: TurtleCommandsAnimator::new(turtle, &triangle_commands, interval_ms),
+            animator: TurtleCommandsAnimator::new(
+                turtle,
+                &triangle_commands,
+                interval_ms,
+                TurtleCommandsAnimationAutoReset::Enabled {
+                    reset_timeout_ms: 3000,
+                },
+            ),
         }
     }
 
