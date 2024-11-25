@@ -117,7 +117,7 @@ pub enum TurtleCommand {
 
 #[derive(Clone)]
 pub struct TurtleConfig {
-    pub start_rotation: Vec2,
+    pub start_angle: f32,
     pub pen_width: f32,
     pub pen_color: Color,
     pub pen_down: bool,
@@ -128,7 +128,7 @@ pub struct TurtleConfig {
 impl Default for TurtleConfig {
     fn default() -> Self {
         Self {
-            start_rotation: Vec2::new(0.0, 1.0),
+            start_angle: 0.0,
             pen_width: 1.0,
             pen_color: BLACK,
             pen_down: true,
@@ -155,10 +155,10 @@ pub struct Turtle {
 #[allow(dead_code)]
 impl Turtle {
     pub fn new(origin: Vec2, screen: Arc<TurtleScreen>, config: &TurtleConfig) -> Self {
-        return Self {
+        let mut turtle = Self {
             position: origin,
             origin,
-            rotation: config.start_rotation.normalize(),
+            rotation: Vec2::new(0.0, 1.0),
             pen_width: config.pen_width,
             pen_color: config.pen_color,
             pen_down: config.pen_down,
@@ -167,6 +167,9 @@ impl Turtle {
             original_config: config.clone(),
             screen,
         };
+        turtle.set_angle(config.start_angle);
+
+        turtle
     }
 
     pub fn get_position(&self) -> Vec2 {
@@ -206,7 +209,12 @@ impl Turtle {
 
     pub fn reset(&mut self) {
         self.to_origin();
-        self.rotation = self.original_config.start_rotation.normalize();
+        self.set_angle(self.original_config.start_angle);
+        self.pen_width = self.original_config.pen_width;
+        self.pen_color = self.original_config.pen_color;
+        self.pen_down = self.original_config.pen_down;
+        self.angle_offset = self.original_config.angle_offset;
+        self.angle_rotation = self.original_config.angle_rotation;
     }
 
     pub fn forward(&mut self, distance: f32) {

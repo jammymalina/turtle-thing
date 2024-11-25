@@ -34,6 +34,7 @@ trait TurtleBehaviour {
     fn update(&mut self, dt: f32, time_passed_ms: u64);
 }
 
+#[allow(dead_code)]
 enum TurtleCommandsAnimationAutoReset {
     Disabled,
     Enabled { reset_timeout_ms: u64 },
@@ -68,6 +69,7 @@ impl TurtleCommandsAnimator {
     fn reset(&mut self) {
         self.current_command_index = 0;
         self.turtle.clear();
+        self.turtle.reset();
     }
 }
 
@@ -341,6 +343,7 @@ struct SierpinskiTriangle {
 impl SierpinskiTriangle {
     fn new(screen: Arc<TurtleScreen>, n: u32, a: f32, interval_ms: u64) -> Self {
         let turtle_config = TurtleConfig {
+            start_angle: 90.0,
             pen_width: 1.0,
             ..Default::default()
         };
@@ -407,7 +410,7 @@ async fn main() {
     let _spiral_motion_2 = SpiralMotion2::new(screen.clone(), 1);
     let _expanding_circle_motion = ExpandingCircleMotion::new(screen.clone(), 1, 1.0);
     let _expanding_spiral = ExpandingSpiral::new(screen.clone(), 3, 50.0);
-    let sierpinski_triangle = SierpinskiTriangle::new(screen.clone(), 5, 300.0, 100);
+    let sierpinski_triangle = SierpinskiTriangle::new(screen.clone(), 5, 300.0, 1);
 
     let mut turtle_behaviours: Vec<Box<dyn TurtleBehaviour>> = vec![Box::new(sierpinski_triangle)];
 
